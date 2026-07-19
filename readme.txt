@@ -1,8 +1,8 @@
 === Disable All Thumbnails ===
 Contributors: ivanlin
-Tags: images, thumbnails, media, optimization, performance, space
-Requires at least: 5.0
-Tested up to: 6.5
+Tags: images, thumbnails, media, optimization, performance
+Requires at least: 5.3
+Tested up to: 6.7
 Requires PHP: 7.0
 Stable tag: 1.1.0
 License: Apache-2.0

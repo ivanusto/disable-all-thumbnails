@@ -10,6 +10,8 @@
  * License URI: http://www.apache.org/licenses/LICENSE-2.0
  * Text Domain: disable-all-thumbnails
  * Domain Path: /languages
+ * Requires at least: 5.3
+ * Tested up to: 6.7
  */
 
 // Exit if accessed directly.
@@ -22,11 +24,9 @@ class DisableAllThumbnails {
     private $option_name = 'disable_thumbnails_settings';
     private $sizes_option_name = 'disable_thumbnails_known_sizes';
     private $cache_group = 'disable_thumbnails';
+    private $settings_page = '';
     
     public function __construct() {
-        // Load text domain
-        add_action('init', array($this, 'load_textdomain'));
-
         // Basic functionality
         add_action('init', array($this, 'disable_existing_image_sizes'), 999);
         add_filter('intermediate_image_sizes_advanced', array($this, 'disable_image_sizes'), 999);
@@ -44,17 +44,10 @@ class DisableAllThumbnails {
     }
 
     /**
-     * Load translation files
-     */
-    public function load_textdomain() {
-        load_plugin_textdomain('disable-all-thumbnails', false, dirname(plugin_basename(__FILE__)) . '/languages');
-    }
-
-    /**
      * Enqueue admin JavaScript
      */
     public function enqueue_admin_scripts($hook_suffix) {
-        if (isset($_GET['page']) && $_GET['page'] === 'disable-thumbnails-settings') {
+        if ($hook_suffix === $this->settings_page) {
             wp_enqueue_script(
                 'disable-thumbnails-admin',
                 plugin_dir_url(__FILE__) . 'js/admin.js',
@@ -68,7 +61,9 @@ class DisableAllThumbnails {
                 'nonce'            => wp_create_nonce('delete_thumbnails_nonce'),
                 'confirm_message'  => __('Are you sure you want to delete all thumbnails? This action cannot be undone.', 'disable-all-thumbnails'),
                 'deleting_message' => __('Starting deletion...', 'disable-all-thumbnails'),
+                // translators: %1$d: processed count, %2$d: total images, %3$d: deleted batch count
                 'progress_message' => __('Processed %1$d of %2$d images. Deleted %3$d files so far...', 'disable-all-thumbnails'),
+                // translators: %d: number of deleted files
                 'success_message'  => __('Successfully completed! Total %d thumbnail files deleted.', 'disable-all-thumbnails'),
                 'error_message'    => __('An error occurred during deletion.', 'disable-all-thumbnails')
             ));
@@ -275,7 +270,7 @@ class DisableAllThumbnails {
      * Add settings page menu item
      */
     public function add_settings_page() {
-        add_options_page(
+        $this->settings_page = add_options_page(
             esc_html__('Disable Thumbnails Settings', 'disable-all-thumbnails'),
             esc_html__('Disable Thumbnails', 'disable-all-thumbnails'),
             'manage_options',
@@ -452,7 +447,10 @@ class DisableAllThumbnails {
                                 </td>
                                 <td style="padding: 10px; vertical-align: middle;">
                                     <?php if (isset($data['width']) && isset($data['height'])): ?>
-                                        <?php printf(esc_html__('%1$spx &times; %2$spx', 'disable-all-thumbnails'), esc_html($data['width']), esc_html($data['height'])); ?>
+                                        <?php
+                                        // translators: %1$s: width, %2$s: height
+                                        printf(esc_html__('%1$spx &times; %2$spx', 'disable-all-thumbnails'), esc_html($data['width']), esc_html($data['height']));
+                                        ?>
                                         <?php if (!empty($data['crop'])): ?>
                                             <span class="description" style="color: #c9302c;">(<?php esc_html_e('cropped', 'disable-all-thumbnails'); ?>)</span>
                                         <?php endif; ?>
@@ -501,4 +499,4 @@ class DisableAllThumbnails {
 }
 
 // Initialize the plugin.
-$disable_all_thumbnails = new DisableAllThumbnails();
+new DisableAllThumbnails();
