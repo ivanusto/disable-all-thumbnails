@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: Disable All Thumbnails
- * Plugin URI: https://github.com/ivanusto/disable-all-thumbnails
+ * Plugin URI: https://yblog.org
  * Description: Prevent the generation of specific thumbnail formats to save disk space and improve performance. / 停用 WordPress 所有縮圖格式生成功能，優化網站空間使用並提升效能。
  * Version: 1.1.0
  * Author: Ivan Lin
