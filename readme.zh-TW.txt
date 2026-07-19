@@ -2,7 +2,7 @@
 Contributors: ivanlin
 Tags: images, thumbnails, media, optimization, performance
 Requires at least: 5.3
-Tested up to: 6.7
+Tested up to: 7.0
 Requires PHP: 7.0
 Stable tag: 1.1.0
 License: Apache-2.0

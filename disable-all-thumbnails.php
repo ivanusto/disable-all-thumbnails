@@ -11,7 +11,7 @@
  * Text Domain: disable-all-thumbnails
  * Domain Path: /languages
  * Requires at least: 5.3
- * Tested up to: 6.7
+ * Tested up to: 7.0
  */
 
 // Exit if accessed directly.
