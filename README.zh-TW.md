@@ -28,6 +28,10 @@
 ### 如果我改變心意，可以重新生成縮圖嗎？
 可以。只要停用此外掛，WordPress 就會恢復正常的縮圖生成功能。若您之前已刪除了縮圖檔案，可以使用如 "Regenerate Thumbnails" 等外掛重新為媒體庫圖片生成所需的縮圖。
 
+## 相關專案
+
+本外掛是 [Omni Webmaster & SEO Suite](https://github.com/ivanusto/omni-webmaster-seo-suite) 的六個起源專案之一——該套件整合並最佳化作者的多個獨立外掛，並額外加入 Meta Pixel 追蹤與文章數據匯出功能。
+
 ## 授權條款
 
 本專案採用 Apache License 2.0 授權。詳情請參閱 [LICENSE](LICENSE) 檔案。

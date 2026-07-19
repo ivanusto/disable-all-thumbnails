@@ -30,6 +30,8 @@ Key Features:
 4. Provides a paginated AJAX batch deletion engine with a native progress bar UI.
 5. Complies with WordPress best practices, enqueuing JavaScript files cleanly.
 
+This plugin is one of the origin projects of Omni Webmaster & SEO Suite, an all-in-one webmaster toolkit by the same author that consolidates and optimizes these standalone plugins: https://github.com/ivanusto/omni-webmaster-seo-suite
+
 == Installation ==
 
 1. Upload and activate the plugin in the WordPress admin panel.

@@ -28,6 +28,10 @@ It might, if your theme explicitly relies on a specific disabled size to show im
 ### Can I regenerate thumbnails if I change my mind?
 Yes. Deactivating the plugin restores normal image size generation. If you already deleted the files, you can use a plugin like "Regenerate Thumbnails" to rebuild them.
 
+## Related Project
+
+This plugin is one of the six origin projects of [Omni Webmaster & SEO Suite](https://github.com/ivanusto/omni-webmaster-seo-suite) — an all-in-one webmaster toolkit that consolidates and optimizes the author's standalone plugins, adding Meta Pixel tracking and monthly post data export on top.
+
 ## License
 
 This project is licensed under the Apache License 2.0. See the [LICENSE](LICENSE) file for details.

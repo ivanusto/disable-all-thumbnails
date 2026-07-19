@@ -30,6 +30,8 @@ Disable All Thumbnails 是一個簡單但功能強大的 WordPress 外掛，讓�
 4. 提供分頁 AJAX 批次刪除現有縮圖功能與進度條介面
 5. 遵循 WordPress 標準，排除 inline scripts 改為 enqueue script 方式加載
 
+本外掛是 Omni Webmaster & SEO Suite（同作者整合最佳化多個獨立外掛的一站式站長工具套件）的起源專案之一：https://github.com/ivanusto/omni-webmaster-seo-suite
+
 == Installation ==
 
 1. 在 WordPress 後台上傳並啟用外掛
