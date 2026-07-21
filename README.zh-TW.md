@@ -2,6 +2,18 @@
 
 停用 WordPress 所有縮圖格式生成功能，優化網站空間使用並提升效能。
 
+## 螢幕截圖
+
+![Disable All Thumbnails 介面預覽](https://yblog.org/wp-content/uploads/2026/07/wordpress_disable_thumbnails01.webp)
+
+| 選擇停用縮圖尺寸 | 分批刪除舊縮圖 |
+| :---: | :---: |
+| ![停用縮圖尺寸設定頁面](https://yblog.org/wp-content/uploads/2026/07/wordpress_disable_thumbnails.webp) | ![批次刪除現有縮圖介面](https://yblog.org/wp-content/uploads/2026/07/wordpress_disable_thumbnails02.webp) |
+| 自由勾選欲停用的縮圖格式 | 分頁 AJAX 清理技術與原生進度條 |
+
+*圖片引用自文章：[解決 WordPress 媒體庫空間膨脹：使用 Disable All Thumbnails 批次清理數十萬冗餘縮圖](https://yblog.org/2026/07/21/solving-wordpress-media/)*
+
+
 ## 說明
 
 **Disable All Thumbnails** 是一款輕量且穩定的 WordPress 外掛，讓您能夠自由選擇要停用的圖片尺寸格式（包含 WordPress 原生內建尺寸，以及由其他外掛或主題所註冊的自訂尺寸）。這能有效節省主機硬碟空間、加快上傳圖片的處理速度，並縮小備份檔案。外掛亦內建安全的分頁分批（Paginated Batching）刪除引擎與進度條介面，讓您能在不停機、不逾時的情況下，一鍵清除舊有的縮圖檔案。

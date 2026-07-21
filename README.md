@@ -2,6 +2,18 @@
 
 Prevent the generation of specific thumbnail formats to save disk space and improve performance.
 
+## Screenshots
+
+![Disable All Thumbnails Overview](https://yblog.org/wp-content/uploads/2026/07/wordpress_disable_thumbnails01.webp)
+
+| Disable Specific Sizes | Batch Deletion Engine |
+| :---: | :---: |
+| ![Settings Table](https://yblog.org/wp-content/uploads/2026/07/wordpress_disable_thumbnails.webp) | ![Batch Deletion UI](https://yblog.org/wp-content/uploads/2026/07/wordpress_disable_thumbnails02.webp) |
+| Selectively disable registered image sizes | Paginated batch cleanup with native progress bar |
+
+*Images quoted from article: [解決 WordPress 媒體庫空間膨脹：使用 Disable All Thumbnails 批次清理數十萬冗餘縮圖](https://yblog.org/2026/07/21/solving-wordpress-media/)*
+
+
 ## Description
 
 **Disable All Thumbnails** is a light and robust WordPress plugin that allows you to selectively disable any registered image size formats (including default sizes and custom sizes registered by plugins or themes). This helps to optimize disk space usage on your server, speed up file uploads, and reduce backup file sizes. It also provides a built-in paginated batch deletion process to safely delete existing thumbnail files without timing out.
