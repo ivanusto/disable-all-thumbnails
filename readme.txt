@@ -4,7 +4,7 @@ Tags: images, thumbnails, media, optimization, performance
 Requires at least: 5.3
 Tested up to: 7.0
 Requires PHP: 7.0
-Stable tag: 1.1.0
+Stable tag: 1.1.1
 License: Apache-2.0
 License URI: http://www.apache.org/licenses/LICENSE-2.0
 Donate link: https://yblog.org
@@ -57,6 +57,9 @@ Yes! It improves performance by:
 * Reducing backup file sizes.
 
 == Changelog ==
+
+= 1.1.1 =
+* Fix: Removed persistent updates to core media options (thumbnail_size_w/h). Disabling built-in sizes is now handled at runtime via the intermediate_image_sizes_advanced filter, so WordPress media settings are no longer altered after the feature is disabled.
 
 = 1.1.0 =
 * New: Paginated AJAX batch deletion engine (avoids timeouts on large libraries)

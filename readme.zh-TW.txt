@@ -4,7 +4,7 @@ Tags: images, thumbnails, media, optimization, performance
 Requires at least: 5.3
 Tested up to: 7.0
 Requires PHP: 7.0
-Stable tag: 1.1.0
+Stable tag: 1.1.1
 License: Apache-2.0
 License URI: http://www.apache.org/licenses/LICENSE-2.0
 Donate link: https://yblog.org
@@ -57,6 +57,9 @@ Disable All Thumbnails 是一個簡單但功能強大的 WordPress 外掛，讓�
 * 減少備份大小
 
 == Changelog ==
+
+= 1.1.1 =
+* 修正：移除對核心媒體選項（thumbnail_size_w/h）的持久性寫入。內建尺寸的停用改由 intermediate_image_sizes_advanced 濾鏡於執行期處理，停用功能後不再影響 WordPress 媒體設定。
 
 = 1.1.0 =
 * 新增：分頁 AJAX 批次刪除現有縮圖功能（避免大媒體庫逾時）
