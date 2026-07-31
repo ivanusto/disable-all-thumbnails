@@ -6,8 +6,8 @@
  * Version: 1.1.1
  * Author: Ivan Lin
  * Author URI: https://yblog.org
- * License: Apache-2.0
- * License URI: http://www.apache.org/licenses/LICENSE-2.0
+ * License: GPLv2 or later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: disable-all-thumbnails
  * Domain Path: /languages
  * Requires at least: 5.3
