@@ -44,6 +44,6 @@ Yes. Deactivating the plugin restores normal image size generation. If you alrea
 
 This plugin is one of the six origin projects of [Omni Webmaster & SEO Suite](https://github.com/ivanusto/omni-webmaster-seo-suite) — an all-in-one webmaster toolkit that consolidates and optimizes the author's standalone plugins, adding Meta Pixel tracking and monthly post data export on top.
 
-## License
+## License / 授權條款
 
-This project is licensed under the Apache License 2.0. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the [GNU General Public License v2.0 or later (GPL-2.0-or-later)](LICENSE).
