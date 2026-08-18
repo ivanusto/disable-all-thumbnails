@@ -4,7 +4,7 @@ Tags: images, thumbnails, media, optimization, performance
 Requires at least: 5.3
 Tested up to: 7.0
 Requires PHP: 7.0
-Stable tag: 1.1.1
+Stable tag: 1.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Donate link: https://yblog.org
@@ -57,6 +57,12 @@ Yes! It improves performance by:
 * Reducing backup file sizes.
 
 == Changelog ==
+
+= 1.2.0 =
+* Fix: The site icon is now protected. "Delete All Thumbnails" walked every image attachment and blanked its whole `sizes` metadata, which removed the `site_icon-32`, `site_icon-180`, `site_icon-192` and `site_icon-270` files that back the favicon, the Apple touch icon and the Windows tile. Running it once broke the favicon site-wide, and regenerating thumbnails could not bring it back because the metadata was gone. The attachment currently set as the site icon is now skipped entirely; images that were the site icon in the past are still cleaned up, since nothing references them any more.
+* Fix: Deletion now removes each size individually instead of blanking the whole `sizes` array, so preserved sizes survive and attachments with nothing to delete are no longer rewritten.
+* Fix: Site icon sub-sizes are no longer listed on the settings screen and can no longer be switched off, which previously broke the favicon for any site icon set afterwards. Stale entries saved by earlier versions are ignored.
+* New: `disable_all_thumbnails_is_protected_size` and `disable_all_thumbnails_skip_attachment` filters for protecting additional sizes or attachments.
 
 = 1.1.1 =
 * Fix: Removed persistent updates to core media options (thumbnail_size_w/h). Disabling built-in sizes is now handled at runtime via the intermediate_image_sizes_advanced filter, so WordPress media settings are no longer altered after the feature is disabled.

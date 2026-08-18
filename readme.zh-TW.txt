@@ -4,7 +4,7 @@ Tags: images, thumbnails, media, optimization, performance
 Requires at least: 5.3
 Tested up to: 7.0
 Requires PHP: 7.0
-Stable tag: 1.1.1
+Stable tag: 1.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Donate link: https://yblog.org
@@ -57,6 +57,12 @@ Disable All Thumbnails 是一個簡單但功能強大的 WordPress 外掛，讓�
 * 減少備份大小
 
 == Changelog ==
+
+= 1.2.0 =
+* 修正：站點圖示（網站圖示）現在受到保護。原本「刪除所有縮圖」會走過每一個圖片附件並直接清空整個 `sizes` 中繼資料，連帶刪掉支撐 favicon、Apple touch icon 與 Windows 磚的 `site_icon-32`、`site_icon-180`、`site_icon-192`、`site_icon-270` 檔案。只要執行過一次，全站 favicon 就會失效，而且因為中繼資料已被清空，重新產生縮圖也救不回來。現在會完整跳過「目前設定為站點圖示」的那張附件；曾經當過站點圖示但已被替換的舊圖仍會照常清理，因為已經沒有任何地方引用它們。
+* 修正：刪除改為逐一移除各尺寸，不再整個清空 `sizes` 陣列，受保護的尺寸得以保留，沒有可刪內容的附件也不會被無謂改寫。
+* 修正：站點圖示子尺寸不再出現在設定頁、也無法被關閉；先前若關閉它，之後設定的站點圖示都會壞掉。舊版寫入的殘留設定會被忽略。
+* 新增：`disable_all_thumbnails_is_protected_size` 與 `disable_all_thumbnails_skip_attachment` 兩個濾鏡，可保護其他尺寸或附件。
 
 = 1.1.1 =
 * 修正：移除對核心媒體選項（thumbnail_size_w/h）的持久性寫入。內建尺寸的停用改由 intermediate_image_sizes_advanced 濾鏡於執行期處理，停用功能後不再影響 WordPress 媒體設定。

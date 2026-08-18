@@ -3,7 +3,7 @@
  * Plugin Name: Disable All Thumbnails
  * Plugin URI: https://yblog.org
  * Description: Prevent the generation of specific thumbnail formats to save disk space and improve performance. / 停用 WordPress 所有縮圖格式生成功能，優化網站空間使用並提升效能。
- * Version: 1.1.1
+ * Version: 1.2.0
  * Author: Ivan Lin
  * Author URI: https://yblog.org
  * License: GPLv2 or later
@@ -139,7 +139,84 @@ class DisableAllThumbnails {
             }
         }
         
+        return $this->strip_protected_sizes($sizes);
+    }
+
+    /**
+     * Whether an image size must never be disabled or deleted.
+     *
+     * WordPress generates site_icon-32, site_icon-180, site_icon-192 and
+     * site_icon-270 for the site icon. They back the favicon, the Apple touch
+     * icon and the Windows tile, so removing them breaks all three. They are
+     * functional icons rather than content thumbnails, so this plugin leaves
+     * them alone and does not offer them on the settings screen.
+     *
+     * @since 1.2.0
+     *
+     * @param string $size Image size name.
+     * @return bool True when the size must be preserved.
+     */
+    private function is_protected_size($size) {
+        $protected = (strpos($size, 'site_icon-') === 0);
+
+        /**
+         * Filters whether an image size is protected from being disabled or deleted.
+         *
+         * @since 1.2.0
+         *
+         * @param bool   $protected Whether the size must be preserved.
+         * @param string $size      Image size name.
+         */
+        return (bool) apply_filters('disable_all_thumbnails_is_protected_size', $protected, $size);
+    }
+
+    /**
+     * Remove protected sizes from a list of image sizes.
+     *
+     * @since 1.2.0
+     *
+     * @param array $sizes Image sizes keyed by size name.
+     * @return array Sizes without the protected ones.
+     */
+    private function strip_protected_sizes($sizes) {
+        foreach (array_keys($sizes) as $size) {
+            if ($this->is_protected_size($size)) {
+                unset($sizes[$size]);
+            }
+        }
+
         return $sizes;
+    }
+
+    /**
+     * Whether an attachment must be left untouched by the bulk delete.
+     *
+     * Only the attachment currently set as the site icon is excluded, because
+     * its sub-sizes are referenced from the document head on every page load.
+     * Attachments that were the site icon in the past are deliberately not
+     * excluded: nothing references them any more, so the bulk delete should be
+     * able to reclaim their files.
+     *
+     * @since 1.2.0
+     *
+     * @param int $attachment_id Attachment post ID.
+     * @return bool True when the attachment must be skipped.
+     */
+    private function should_skip_attachment($attachment_id) {
+        $attachment_id = (int) $attachment_id;
+        $site_icon = (int) get_option('site_icon');
+
+        $skip = ($site_icon && $attachment_id === $site_icon);
+
+        /**
+         * Filters whether an attachment is skipped by the bulk thumbnail delete.
+         *
+         * @since 1.2.0
+         *
+         * @param bool $skip          Whether to skip the attachment.
+         * @param int  $attachment_id Attachment post ID.
+         */
+        return (bool) apply_filters('disable_all_thumbnails_skip_attachment', $skip, $attachment_id);
     }
 
     /**
@@ -154,6 +231,10 @@ class DisableAllThumbnails {
         
         // Merge them
         $sizes = array_merge($known_sizes, $current_sizes);
+
+        // Installs upgrading from before 1.2.0 may still have site icon
+        // sub-sizes recorded in the known-sizes option.
+        $sizes = $this->strip_protected_sizes($sizes);
         
         // Add display name for each
         foreach ($sizes as $size => &$data) {
@@ -252,7 +333,7 @@ class DisableAllThumbnails {
         }
         
         foreach ($settings as $size => $disabled) {
-            if ($disabled && isset($sizes[$size])) {
+            if ($disabled && isset($sizes[$size]) && !$this->is_protected_size($size)) {
                 unset($sizes[$size]);
             }
         }
@@ -354,6 +435,10 @@ class DisableAllThumbnails {
         $base_dir = trailingslashit($upload_dir['basedir']);
 
         foreach ($images as $image_id) {
+            if ($this->should_skip_attachment($image_id)) {
+                continue;
+            }
+
             $metadata = wp_get_attachment_metadata($image_id);
             if (empty($metadata) || empty($metadata['sizes'])) {
                 continue;
@@ -361,6 +446,7 @@ class DisableAllThumbnails {
 
             if (isset($metadata['file'])) {
                 $file_dir = trailingslashit(dirname($metadata['file']));
+                $metadata_changed = false;
                 
                 foreach ($metadata['sizes'] as $size => $size_info) {
                     if (empty($size_info['file'])) {
@@ -388,11 +474,15 @@ class DisableAllThumbnails {
                         wp_delete_file($avif_path);
                         $deleted_batch++;
                     }
+
+                    // Remove only this size, so protected ones survive.
+                    unset($metadata['sizes'][$size]);
+                    $metadata_changed = true;
                 }
                 
-                // Clear thumbnail sizes from attachment metadata
-                $metadata['sizes'] = array();
-                wp_update_attachment_metadata($image_id, $metadata);
+                if ($metadata_changed) {
+                    wp_update_attachment_metadata($image_id, $metadata);
+                }
             }
         }
 
