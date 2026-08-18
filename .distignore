@@ -1,0 +1,14 @@
+# Single source of truth for what stays out of the release archive.
+# Consumed by .github/workflows/release.yml (rsync --exclude-from) and by
+# `wp dist-archive`. Keep new development-only files listed here.
+.distignore
+.git
+.gitignore
+.github
+README.zh-TW.md
+node_modules
+.DS_Store
+claude-memory
+.claude
+*.bak
+*.zip
