@@ -5,8 +5,8 @@ Requires at least: 5.3
 Tested up to: 7.0
 Requires PHP: 7.0
 Stable tag: 1.1.1
-License: Apache-2.0
-License URI: http://www.apache.org/licenses/LICENSE-2.0
+License: GPLv2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Donate link: https://yblog.org
 
 Prevent the generation of specific thumbnail formats to save disk space and improve performance.
