@@ -2,9 +2,9 @@
 Contributors: ivanlin
 Tags: images, thumbnails, media, optimization, performance
 Requires at least: 5.3
-Tested up to: 7.0
+Tested up to: 7.1
 Requires PHP: 7.0
-Stable tag: 1.2.0
+Stable tag: 1.3.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Donate link: https://yblog.org
@@ -57,6 +57,13 @@ Yes! It improves performance by:
 * Reducing backup file sizes.
 
 == Changelog ==
+
+= 1.3.0 =
+* Fix: WordPress 7.1 regenerated disabled sizes anyway. Two code paths ask `wp_get_missing_image_subsizes()` what still needs generating and skip the `intermediate_image_sizes_advanced` filter entirely: the long-standing post-upload recovery pass, and 7.1's client-side media processing, where the browser reads the missing list from the REST response, generates those sizes locally and sideloads them back. The plugin now filters that list too, so a disabled size stays disabled in both paths.
+* Fix: The bulk delete now keeps the companion files WordPress 7.1 stores beside the main image - `original_image` (the pre-scale upload), `source_image` (for example the HEIC a JPEG was derived from) and `animated_video` / `animated_video_poster` (what an animated GIF is converted to). 7.1 can register one physical file under several size names, so a size entry may point straight at one of these; deleting it left the attachment referencing a missing file. The size entry is still removed, the shared file is not.
+* Fix: The settings screen showed no dimensions for the built-in 1536x1536 and 2048x2048 sizes. WordPress registers them with `add_image_size()` and never creates the `*_size_w` / `*_size_h` options the screen was reading. Dimensions now come from `wp_get_registered_image_subsizes()`, with the fixed dimensions core names them after as a fallback for when disabling them drops them from the registry.
+* Fix: An unconstrained axis now reads "auto" instead of "0px", so Medium Large shows as `768px × auto` - it is 768px wide at whatever height preserves the aspect ratio. The multiplication sign also renders correctly instead of showing the literal text `&times;`.
+* Tested against WordPress 7.1.
 
 = 1.2.0 =
 * Fix: The site icon is now protected. "Delete All Thumbnails" walked every image attachment and blanked its whole `sizes` metadata, which removed the `site_icon-32`, `site_icon-180`, `site_icon-192` and `site_icon-270` files that back the favicon, the Apple touch icon and the Windows tile. Running it once broke the favicon site-wide, and regenerating thumbnails could not bring it back because the metadata was gone. The attachment currently set as the site icon is now skipped entirely; images that were the site icon in the past are still cleaned up, since nothing references them any more.

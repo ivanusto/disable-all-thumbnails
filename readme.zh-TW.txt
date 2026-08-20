@@ -2,9 +2,9 @@
 Contributors: ivanlin
 Tags: images, thumbnails, media, optimization, performance
 Requires at least: 5.3
-Tested up to: 7.0
+Tested up to: 7.1
 Requires PHP: 7.0
-Stable tag: 1.2.0
+Stable tag: 1.3.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Donate link: https://yblog.org
@@ -57,6 +57,13 @@ Disable All Thumbnails 是一個簡單但功能強大的 WordPress 外掛，讓�
 * 減少備份大小
 
 == Changelog ==
+
+= 1.3.0 =
+* 修正：WordPress 7.1 仍會重新產生已停用的尺寸。有兩條路徑是向 `wp_get_missing_image_subsizes()` 詢問還缺哪些尺寸，完全略過 `intermediate_image_sizes_advanced` 濾鏡：一是行之有年的上傳後補產機制，二是 7.1 的用戶端媒體處理——瀏覽器從 REST 回應讀取缺少清單，在本機產生後再回傳。現在外掛也會過濾這份清單，兩條路徑都不會讓停用的尺寸復活。
+* 修正：批次刪除現在會保留 WordPress 7.1 存放在主圖旁的伴隨檔案——`original_image`（縮放前的原始上傳檔）、`source_image`（例如 JPEG 的來源 HEIC）以及 `animated_video` / `animated_video_poster`（動態 GIF 轉出的影片與首格）。7.1 可能把同一個實體檔案登記在多個尺寸名稱下，因此某個尺寸項目可能直接指向這些檔案，刪掉就會讓附件指向不存在的檔案。現在尺寸項目照樣移除，但共用的檔案會留下。
+* 修正：設定頁對內建的 1536x1536 與 2048x2048 尺寸完全不顯示尺寸數值。WordPress 是用 `add_image_size()` 註冊它們，從不建立設定頁所讀取的 `*_size_w` / `*_size_h` 選項。尺寸數值改由 `wp_get_registered_image_subsizes()` 取得，並保留核心命名所依據的固定尺寸作為後備，以因應停用後它們被移出註冊表的情況。
+* 修正：沒有限制的那一軸現在顯示「auto」而非「0px」，所以 Medium Large 會顯示為 `768px × auto`——它是寬 768px、高度依比例自適應。乘號也不再顯示成 `&times;` 字面文字。
+* 已針對 WordPress 7.1 測試。
 
 = 1.2.0 =
 * 修正：站點圖示（網站圖示）現在受到保護。原本「刪除所有縮圖」會走過每一個圖片附件並直接清空整個 `sizes` 中繼資料，連帶刪掉支撐 favicon、Apple touch icon 與 Windows 磚的 `site_icon-32`、`site_icon-180`、`site_icon-192`、`site_icon-270` 檔案。只要執行過一次，全站 favicon 就會失效，而且因為中繼資料已被清空，重新產生縮圖也救不回來。現在會完整跳過「目前設定為站點圖示」的那張附件；曾經當過站點圖示但已被替換的舊圖仍會照常清理，因為已經沒有任何地方引用它們。

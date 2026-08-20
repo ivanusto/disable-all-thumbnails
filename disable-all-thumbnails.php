@@ -3,7 +3,7 @@
  * Plugin Name: Disable All Thumbnails
  * Plugin URI: https://yblog.org
  * Description: Prevent the generation of specific thumbnail formats to save disk space and improve performance. / 停用 WordPress 所有縮圖格式生成功能，優化網站空間使用並提升效能。
- * Version: 1.2.0
+ * Version: 1.3.0
  * Author: Ivan Lin
  * Author URI: https://yblog.org
  * License: GPLv2 or later
@@ -11,7 +11,7 @@
  * Text Domain: disable-all-thumbnails
  * Domain Path: /languages
  * Requires at least: 5.3
- * Tested up to: 7.0
+ * Tested up to: 7.1
  */
 
 // Exit if accessed directly.
@@ -30,7 +30,16 @@ class DisableAllThumbnails {
         // Basic functionality
         add_action('init', array($this, 'disable_existing_image_sizes'), 999);
         add_filter('intermediate_image_sizes_advanced', array($this, 'disable_image_sizes'), 999);
-        
+
+        // Two code paths ask wp_get_missing_image_subsizes() what still needs
+        // generating and skip intermediate_image_sizes_advanced entirely: the
+        // post-upload recovery in wp_update_image_subsizes(), and - since
+        // WordPress 7.1 - client-side media processing, where the browser reads
+        // missing_image_sizes from the REST create response, generates those
+        // sizes in the browser and sideloads them back. Without this filter a
+        // disabled size is regenerated regardless of the setting.
+        add_filter('wp_get_missing_image_subsizes', array($this, 'filter_missing_image_subsizes'), 999);
+
         // Admin interface
         if (is_admin()) {
             add_action('admin_menu', array($this, 'add_settings_page'));
@@ -52,7 +61,7 @@ class DisableAllThumbnails {
                 'disable-thumbnails-admin',
                 plugin_dir_url(__FILE__) . 'js/admin.js',
                 array('jquery'),
-                '1.1.1',
+                '1.3.0',
                 true
             );
             
@@ -97,20 +106,40 @@ class DisableAllThumbnails {
         // Builtin sizes list
         $builtin_sizes = array('thumbnail', 'medium', 'medium_large', 'large', '1536x1536', '2048x2048');
         
+        // WordPress registers these two with add_image_size() on plugins_loaded
+        // and never creates {$size}_size_w / _size_h options for them, so
+        // reading the options returns nothing and the settings screen showed no
+        // dimensions at all. They are also the only built-in sizes
+        // remove_image_size() can drop from the registry - which is exactly what
+        // happens once the user disables them here - so keep the fixed
+        // dimensions core names them after as a fallback. Without it a disabled
+        // size would lose its dimensions again, or disappear from the list
+        // entirely and become impossible to re-enable.
+        $registry_only_sizes = array(
+            '1536x1536' => 1536,
+            '2048x2048' => 2048,
+        );
+
         // Handle builtin sizes
         foreach ($builtin_sizes as $size) {
-            if (isset($registered_sizes[$size]) || in_array($size, array('1536x1536', '2048x2048'))) {
-                $width = get_option("{$size}_size_w");
-                $height = get_option("{$size}_size_h");
-                $crop = get_option("{$size}_crop");
-                
-                $sizes[$size] = array(
-                    'width' => $width,
-                    'height' => $height,
-                    'crop' => $crop,
-                    'builtin' => true
-                );
+            if (isset($registered_sizes[$size])) {
+                $width  = (int) $registered_sizes[$size]['width'];
+                $height = (int) $registered_sizes[$size]['height'];
+                $crop   = $registered_sizes[$size]['crop'];
+            } elseif (isset($registry_only_sizes[$size])) {
+                $width  = $registry_only_sizes[$size];
+                $height = $registry_only_sizes[$size];
+                $crop   = false;
+            } else {
+                continue;
             }
+
+            $sizes[$size] = array(
+                'width' => $width,
+                'height' => $height,
+                'crop' => $crop,
+                'builtin' => true
+            );
         }
         
         // Handle custom sizes
@@ -323,6 +352,52 @@ class DisableAllThumbnails {
     }
 
     /**
+     * Names of the sizes the user has disabled, protected sizes excluded.
+     *
+     * @since 1.3.0
+     *
+     * @return string[] Disabled size names.
+     */
+    private function get_disabled_sizes() {
+        $settings = get_option($this->option_name, array());
+
+        if (!is_array($settings)) {
+            return array();
+        }
+
+        $disabled = array();
+        foreach ($settings as $size => $is_disabled) {
+            if ($is_disabled && !$this->is_protected_size($size)) {
+                $disabled[] = $size;
+            }
+        }
+
+        return $disabled;
+    }
+
+    /**
+     * Keep disabled sizes out of the "missing sub-sizes" list, which drives
+     * both the post-upload recovery regeneration and, since WordPress 7.1,
+     * the sizes the browser generates and sideloads back.
+     *
+     * @since 1.3.0
+     *
+     * @param array $missing_sizes Sizes WordPress still intends to generate.
+     * @return array Filtered sizes.
+     */
+    public function filter_missing_image_subsizes($missing_sizes) {
+        if (!is_array($missing_sizes)) {
+            return $missing_sizes;
+        }
+
+        foreach ($this->get_disabled_sizes() as $size) {
+            unset($missing_sizes[$size]);
+        }
+
+        return $missing_sizes;
+    }
+
+    /**
      * Hook to prevent image sizes generation
      */
     public function disable_image_sizes($sizes) {
@@ -447,30 +522,52 @@ class DisableAllThumbnails {
             if (isset($metadata['file'])) {
                 $file_dir = trailingslashit(dirname($metadata['file']));
                 $metadata_changed = false;
-                
+
+                // Files that must survive no matter which size name points at
+                // them. WordPress 7.1 can register one physical file under
+                // several size names, and it stores companion originals beside
+                // the main file: original_image (the pre-scale upload),
+                // source_image (e.g. the HEIC a JPEG was derived from), and
+                // animated_video / animated_video_poster (what an animated GIF
+                // is converted to). None of those are thumbnails, and deleting
+                // one leaves the attachment pointing at a missing file.
+                $kept_files = array();
+                foreach (array('file', 'original_image', 'source_image', 'animated_video', 'animated_video_poster') as $companion_key) {
+                    if (!empty($metadata[$companion_key]) && is_string($metadata[$companion_key])) {
+                        $kept_files[wp_basename($metadata[$companion_key])] = true;
+                    }
+                }
+
                 foreach ($metadata['sizes'] as $size => $size_info) {
                     if (empty($size_info['file'])) {
                         continue;
                     }
-                    
+
+                    if (isset($kept_files[wp_basename($size_info['file'])])) {
+                        // Drop the size entry but keep the shared file on disk.
+                        unset($metadata['sizes'][$size]);
+                        $metadata_changed = true;
+                        continue;
+                    }
+
                     $file_path = $base_dir . $file_dir . $size_info['file'];
-                    
+
                     // Delete original thumbnail file
                     if (file_exists($file_path)) {
                         wp_delete_file($file_path);
                         $deleted_batch++;
                     }
-                    
+
                     // Delete corresponding WebP file if exists
                     $webp_path = preg_replace('/\.(jpg|jpeg|png)$/i', '.webp', $file_path);
-                    if (file_exists($webp_path)) {
+                    if (!isset($kept_files[wp_basename($webp_path)]) && file_exists($webp_path)) {
                         wp_delete_file($webp_path);
                         $deleted_batch++;
                     }
-                    
+
                     // Delete corresponding AVIF file if exists
                     $avif_path = preg_replace('/\.(jpg|jpeg|png)$/i', '.avif', $file_path);
-                    if (file_exists($avif_path)) {
+                    if (!isset($kept_files[wp_basename($avif_path)]) && file_exists($avif_path)) {
                         wp_delete_file($avif_path);
                         $deleted_batch++;
                     }
@@ -495,6 +592,31 @@ class DisableAllThumbnails {
             'deleted_batch'   => $deleted_batch,
             'next_page'       => $next_page
         ));
+    }
+
+    /**
+     * Format a size's dimensions for display.
+     *
+     * An axis stored as 0 is not "zero pixels", it is unconstrained - Medium
+     * Large is 768px wide at whatever height preserves the aspect ratio - so
+     * render it as "auto" rather than a broken-looking "0px".
+     *
+     * @since 1.3.0
+     *
+     * @param int|string $width  Width in pixels, 0 when unconstrained.
+     * @param int|string $height Height in pixels, 0 when unconstrained.
+     * @return string Human-readable dimensions.
+     */
+    private function format_size_dimensions($width, $height) {
+        $width  = (int) $width;
+        $height = (int) $height;
+
+        // translators: shown in place of an image dimension that is unconstrained, e.g. "768px x auto"
+        $unconstrained = __('auto', 'disable-all-thumbnails');
+
+        return ($width > 0 ? $width . 'px' : $unconstrained)
+            . ' × '
+            . ($height > 0 ? $height . 'px' : $unconstrained);
     }
 
     /**
@@ -531,10 +653,7 @@ class DisableAllThumbnails {
                                 </td>
                                 <td style="padding: 10px; vertical-align: middle;">
                                     <?php if (isset($data['width']) && isset($data['height'])): ?>
-                                        <?php
-                                        // translators: %1$s: width, %2$s: height
-                                        printf(esc_html__('%1$spx &times; %2$spx', 'disable-all-thumbnails'), esc_html($data['width']), esc_html($data['height']));
-                                        ?>
+                                        <?php echo esc_html($this->format_size_dimensions($data['width'], $data['height'])); ?>
                                         <?php if (!empty($data['crop'])): ?>
                                             <span class="description" style="color: #c9302c;">(<?php esc_html_e('cropped', 'disable-all-thumbnails'); ?>)</span>
                                         <?php endif; ?>
